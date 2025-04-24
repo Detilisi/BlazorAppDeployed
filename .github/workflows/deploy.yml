@@ -3,7 +3,7 @@ name: Deploy Blazor App to GitHub Pages
 on:
   push:
     branches:
-      - main  # or 'master' if that's your default branch
+      - master
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
 
       - name: Restore dependencies
         run: dotnet restore
