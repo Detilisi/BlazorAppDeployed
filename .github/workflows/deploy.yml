@@ -1,36 +1,38 @@
-name: Deploy Blazor App to GitHub Pages
+
+name: Deploy Blazor app to GitHub Pages
 
 on:
   push:
-    branches:
-      - master
-
-permissions:
-  contents: write
+    branches: [ master ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Publish app
-        run: dotnet publish -c Release -o release
-
-      - name: Copy index.html to 404.html
-        run: cp release/wwwroot/index.html release/wwwroot/404.html
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: release/wwwroot
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Publish with dotnet
+      run: dotnet publish -c Release -o release --nologo
+    
+    - name: Change base-tag in index.html
+      run: sed -i 's/<base href="\/" \/>/<base href="\/${{ github.event.repository.name }}\/" \/>/g' release/wwwroot/index.html
+    
+    - name: Add .nojekyll file
+      run: touch release/wwwroot/.nojekyll
+    
+    - name: Add 404.html
+      run: cp release/wwwroot/index.html release/wwwroot/404.html
+    
+    - name: GitHub Pages Deploy
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: release/wwwroot
+        branch: gh-pages
+        clean: true
